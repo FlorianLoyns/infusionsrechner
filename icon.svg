@@ -1,0 +1,11 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Infusionsrechner">
+  <!-- Teal-Hintergrund -->
+  <rect width="512" height="512" fill="#0d7377"/>
+
+  <!-- Weisser Tropfen, zentriert -->
+  <path d="M 256 100
+           C 256 100, 360 240, 360 320
+           A 104 104 0 1 1 152 320
+           C 152 240, 256 100, 256 100 Z"
+        fill="white"/>
+</svg>

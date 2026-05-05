@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0d7377">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Infusionsrechner">
+<title>Infusionsrechner</title>
+<meta name="description" content="Infusion berechnen für die Pflegeausbildung — Tropfenrate, Laufzeit oder Volumen aus den jeweils anderen beiden Werten.">
+<link rel="manifest" href="manifest.json">
+<link rel="canonical" href="https://florianloyns.github.io/infusionsrechner/">
+<meta name="robots" content="index,follow">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Infusionsrechner">
+<meta property="og:description" content="Infusion berechnen für die Pflegeausbildung — Tropfenrate, Laufzeit oder Volumen aus den jeweils anderen beiden Werten.">
+<meta property="og:image" content="https://florianloyns.github.io/infusionsrechner/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root {
+  --teal: #0d7377;
+  --teal-dark: #0a5c5f;
+  --teal-soft: #d6ecec;
+  --teal-light: #e6f3f3;
+  --bg: #f6f8f7;
+  --bg2: #eaf2f1;
+  --card: #ffffff;
+  --ink: #0b1818;
+  --body: #2d3d3d;
+  --muted: #6b7b7b;
+  --border: #e4eae9;
+  --green: #639922;
+  --green-light: #97C459;
+  --green-soft: #EAF3DE;
+  --green-dark: #3B6D11;
+  --warm: #d97706;
+  --warm-soft: #fef3c7;
+  --shadow-card: 0 1px 0 rgba(0,0,0,.02), 0 12px 28px rgba(13, 24, 24, .08);
+}
+@media (prefers-color-scheme: dark) {
+  html:not(.light) {
+    --bg: #0a1414;
+    --bg2: #0f1c1c;
+    --card: #14252a;
+    --ink: #eef2f1;
+    --body: #b8c2c1;
+    --muted: #7c8b8a;
+    --border: #1f3030;
+    --teal-light: #1a3033;
+    --teal-soft: #1e3d3f;
+    --green-soft: #1f3018;
+    --shadow-card: 0 1px 0 rgba(0,0,0,.4), 0 12px 28px rgba(0, 0, 0, .35);
+  }
+}
+html.dark {
+  --bg: #0a1414;
+  --bg2: #0f1c1c;
+  --card: #14252a;
+  --ink: #eef2f1;
+  --body: #b8c2c1;
+  --muted: #7c8b8a;
+  --border: #1f3030;
+  --teal-light: #1a3033;
+  --teal-soft: #1e3d3f;
+  --green-soft: #1f3018;
+  --shadow-card: 0 1px 0 rgba(0,0,0,.4), 0 12px 28px rgba(0, 0, 0, .35);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+button, input { font: inherit; color: inherit; }
+.app {
+  max-width: 560px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.icon-btn {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: grid; place-items: center;
+  color: var(--body);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.icon-btn:active { background: var(--teal-light); }
+
+/* ---------- Lern-Karte (Begriffsklärung oben) ---------- */
+.learn-card {
+  background: var(--teal-light);
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--body);
+}
+.learn-card strong { color: var(--ink); font-weight: 600; }
+.learn-card em { color: var(--teal); font-style: italic; font-weight: 500; }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+/* ---------- Mode-Tabs (Modus-Auswahl) ---------- */
+.mode-tabs {
+  display: flex;
+  background: var(--bg2);
+  border-radius: 11px;
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+.mode-tab {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 8px;
+  background: transparent;
+  border: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  line-height: 1.15;
+  transition: all .15s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.mode-tab small {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: .65;
+  letter-spacing: .02em;
+}
+.mode-tab.active {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 0 0 1px var(--border);
+}
+.mode-tab.active small { opacity: .8; }
+
+/* Hidden input blocks per mode */
+.input-block[hidden] { display: none; }
+
+/* ---------- Eingabe-Grid ---------- */
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.input-grid .full { grid-column: 1 / -1; }
+@media (max-width: 360px) {
+  .input-grid { grid-template-columns: 1fr; }
+}
+.input-block label {
+  font-size: 12px; color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em;
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 8px;
+}
+.input-block .out {
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+  text-transform: none;
+}
+.input-block .out small {
+  font-weight: 500;
+  color: var(--muted);
+  margin-left: 4px;
+  font-size: 11px;
+}
+
+/* ---------- Slider ---------- */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--teal);
+  cursor: pointer;
+  border: 3px solid var(--card);
+  box-shadow: 0 2px 8px rgba(13,115,119,.35);
+}
+input[type=range]::-moz-range-thumb {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--teal);
+  cursor: pointer;
+  border: 3px solid var(--card);
+  box-shadow: 0 2px 8px rgba(13,115,119,.35);
+}
+.chip, .icon-btn, button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- Chips ---------- */
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip-row.factor .chip {
+  flex: 1 1 calc(50% - 3px);
+  min-width: 0;
+}
+.chip {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: var(--bg2);
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--body);
+  cursor: pointer;
+  transition: all .15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  line-height: 1.2;
+}
+.chip small {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: .7;
+  letter-spacing: .02em;
+}
+.chip.active {
+  background: var(--teal);
+  color: white;
+  border-color: var(--teal);
+  box-shadow: 0 4px 12px rgba(13,115,119,.22);
+}
+.chip.active small { opacity: .9; }
+
+/* ---------- Info-Button und Popover ---------- */
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: serif;
+  font-style: italic;
+  cursor: pointer;
+  margin-left: 6px;
+  padding: 0;
+  line-height: 1;
+  transition: all .15s;
+  vertical-align: middle;
+}
+.info-btn:hover, .info-btn[aria-expanded="true"] {
+  color: var(--teal);
+  border-color: var(--teal);
+  background: var(--teal-light);
+}
+.info-popover {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: var(--bg2);
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--body);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+.info-popover[hidden] { display: none; }
+.info-popover strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.info-popover .info-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 6px 12px;
+  margin-top: 6px;
+}
+.info-popover .info-row dt {
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.info-popover .info-row dd { margin: 0; }
+
+/* ---------- Infusion-Visualisierung ---------- */
+.infusion-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.infusion-vis {
+  flex-shrink: 0;
+  width: 130px;
+  height: 250px;
+  position: relative;
+}
+.infusion-vis svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.bag-empty {
+  fill: var(--teal-soft);
+  opacity: .55;
+}
+.bag-fill {
+  fill: var(--teal);
+  transition: y .25s ease, height .25s ease;
+}
+.bag-shine {
+  fill: white;
+  opacity: .25;
+}
+.bag-cap {
+  fill: var(--muted);
+}
+.bag-label-bg {
+  fill: white;
+  opacity: .85;
+}
+.bag-label-text {
+  fill: var(--teal-dark);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .02em;
+}
+.tube {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.chamber {
+  fill: var(--card);
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+.chamber-fluid {
+  fill: var(--teal-soft);
+}
+.drop {
+  fill: var(--teal);
+  transform-origin: 65px 151px;
+  animation: drop-fall 1.4s linear infinite;
+}
+@keyframes drop-fall {
+  0%   { transform: translateY(0) scale(0.3); opacity: 0; }
+  10%  { transform: translateY(0) scale(1);   opacity: 1; }
+  85%  { transform: translateY(30px) scale(1); opacity: 1; }
+  100% { transform: translateY(30px) scale(1); opacity: 0; }
+}
+.infusion-result {
+  flex: 1;
+  min-width: 0;
+}
+.infusion-rate {
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.infusion-rate.long { font-size: 32px; }
+.infusion-rate.long-xl { font-size: 28px; }
+.infusion-rate-unit {
+  font-size: 16px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-left: 4px;
+}
+.infusion-cadence {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+.infusion-cadence strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.warn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--warm-soft);
+  color: var(--warm);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  margin-top: 8px;
+  letter-spacing: .02em;
+}
+
+/* ---------- Erklärungs-Box ---------- */
+details.explainer {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+details.explainer summary {
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 13px; font-weight: 600;
+  color: var(--ink);
+  list-style: none;
+  display: flex; justify-content: space-between; align-items: center;
+}
+details.explainer summary::-webkit-details-marker { display: none; }
+details.explainer summary .chev {
+  font-size: 22px; color: var(--muted);
+  transition: transform .2s;
+  font-weight: 300;
+  line-height: 1;
+}
+details.explainer[open] summary .chev { transform: rotate(45deg); }
+details.explainer .explainer-body {
+  padding: 0 16px 16px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--body);
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+details.explainer .explainer-body p { margin: 0 0 6px; }
+details.explainer .explainer-body p:last-child { margin-bottom: 0; }
+details.explainer .explainer-body strong { color: var(--ink); font-weight: 600; }
+details.explainer .explainer-body code {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  background: var(--bg2);
+  color: var(--teal);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  display: inline-block;
+  margin-top: 6px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Praxis-Hinweis ---------- */
+.note-card {
+  background: var(--teal-light);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex; gap: 12px;
+  align-items: flex-start;
+}
+.note-icon {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: white;
+  display: grid; place-items: center;
+  font-weight: 800;
+  font-style: italic;
+  font-family: "Iowan Old Style", "Palatino", "Palatino Linotype", Georgia, serif;
+  font-size: 15px;
+}
+.note-body { font-size: 13px; line-height: 1.55; color: var(--body); }
+.note-body strong { color: var(--ink); font-weight: 600; }
+
+/* ---------- Footer ---------- */
+.footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 0 14px;
+  letter-spacing: .02em;
+  line-height: 1.7;
+}
+.footer a { color: var(--muted); text-decoration: none; }
+.footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Intro -->
+  <div style="padding-top: 24px; position: relative;">
+    <h1 style="margin:0; padding-right: 50px; font-size:22px; color:var(--ink); letter-spacing:-.015em; line-height:1.1;">Infusionsrechner</h1>
+    <p style="margin:5px 0 0; font-size:13px; color:var(--muted); line-height:1.3;">Werte einstellen, Ergebnis live mitsehen.</p>
+    <button class="icon-btn" id="theme-btn" aria-label="Farbschema umschalten" style="position: absolute; top: 24px; right: 0;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+  </div>
+
+  <!-- Was ist das? -->
+  <div class="learn-card">
+    <strong>Was rechnen wir hier?</strong> Bei einer Infusion gehören drei Größen zusammen: <strong>Volumen</strong>, <strong>Laufzeit</strong> und <strong>Tropfenrate</strong>. Sind zwei davon bekannt, lässt sich die dritte berechnen. Der <strong>Tropfenfaktor</strong> sagt, wie viele Tropfen pro ml ein bestimmtes Infusionssystem erzeugt.
+  </div>
+
+  <!-- Eingaben -->
+  <div class="card">
+    <div class="mode-tabs" id="mode-tabs" role="tablist">
+      <button class="mode-tab active" data-m="rate" role="tab" aria-selected="true">Tropfenrate<small>Tropfen/min</small></button>
+      <button class="mode-tab" data-m="time" role="tab" aria-selected="false">Laufzeit<small>Stunden</small></button>
+      <button class="mode-tab" data-m="vol" role="tab" aria-selected="false">Volumen<small>ml</small></button>
+    </div>
+
+    <div class="input-grid">
+      <div class="input-block full" id="block-vol" data-input="vol">
+        <label>Volumen <span class="out" id="vol-out">500 <small>ml</small></span></label>
+        <input type="range" id="vol" min="0" max="5" value="3" step="1">
+      </div>
+      <div class="input-block full" id="block-time" data-input="time">
+        <label>Laufzeit <span class="out" id="time-out">4 <small>h</small></span></label>
+        <input type="range" id="time" min="1" max="48" value="8" step="1">
+      </div>
+      <div class="input-block full" id="block-rate" data-input="rate" hidden>
+        <label>Tropfenrate <span class="out" id="rate-out">42 <small>Tropfen/min</small></span></label>
+        <input type="range" id="rate" min="5" max="200" value="42" step="1">
+      </div>
+      <div class="input-block full">
+        <label>
+          Tropfenfaktor
+          <button type="button" class="info-btn" id="info-trigger" aria-expanded="false" aria-controls="info-pop" aria-label="Erklärung">i</button>
+        </label>
+        <div class="chip-row factor" id="factor-row">
+          <button class="chip active" data-f="20">Makrotropf<small>20 Tropfen / ml · Standard</small></button>
+          <button class="chip" data-f="60">Mikrotropf<small>60 Tropfen / ml · Pädiatrie</small></button>
+        </div>
+        <div class="info-popover" id="info-pop" hidden>
+          <p style="margin:0 0 12px;"><strong>Wo finde ich den Tropfenfaktor?</strong> Auf der Verpackung des Infusionssystems, meist als „20 Tropfen ≈ 1 ml" — auch in der lateinischen Schreibweise <em>gtt/ml</em> (von <em>guttae</em> = Tropfen).</p>
+          <p style="margin:0 0 8px;"><strong>Makro</strong> — Standard für klare Lösungen wie NaCl 0,9 % oder Glucose 5 %.</p>
+          <p style="margin:0;"><strong>Mikro</strong> — für Pädiatrie und Intensivmedizin, weil kleinste Mengen exakt steuerbar sind.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Erklärung -->
+  <details class="explainer">
+    <summary>Wie wird gerechnet? <span class="chev">+</span></summary>
+    <div class="explainer-body">
+      <p id="formula-intro">Die Tropfenrate sagt, wie viele Tropfen pro Minute aus dem Beutel fallen müssen, damit das Volumen in der vorgegebenen Zeit komplett durchläuft. Sind Volumen und Laufzeit gegeben, lässt sich die Tropfenrate so berechnen:</p>
+      <p id="formula-name"><strong>Tropfenrate</strong> = (Volumen × Tropfenfaktor) ÷ Laufzeit in Minuten</p>
+      <p><code id="formula"></code></p>
+    </div>
+  </details>
+
+  <!-- Infusion-Visualisierung & Ergebnis -->
+  <div class="infusion-card">
+    <div class="infusion-vis" aria-hidden="true">
+      <svg viewBox="0 0 130 250" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="bagShape">
+            <path d="M 15 18 Q 15 8, 25 8 L 105 8 Q 115 8, 115 18 L 115 105 L 78 126 Q 76 128, 73 128 L 57 128 Q 54 128, 52 126 L 15 105 Z"/>
+          </clipPath>
+        </defs>
+        <!-- Beutel-Hülle (leer, blass) -->
+        <path d="M 15 18 Q 15 8, 25 8 L 105 8 Q 115 8, 115 18 L 115 105 L 78 126 Q 76 128, 73 128 L 57 128 Q 54 128, 52 126 L 15 105 Z" class="bag-empty"/>
+        <!-- Flüssigkeit (Höhe wird via JS auf Volumen skaliert, in Beutelform geclippt) -->
+        <rect id="bag-fluid" x="14" y="8" width="102" height="122" class="bag-fill" clip-path="url(#bagShape)"/>
+        <!-- Etikettenfeld + Volumen-Aufdruck -->
+        <rect x="32" y="36" width="66" height="48" rx="3" class="bag-label-bg"/>
+        <text id="bag-label-text" x="65" y="60" text-anchor="middle" dominant-baseline="central" class="bag-label-text">500 ml</text>
+        <!-- Glanz links -->
+        <rect x="22" y="16" width="5" height="80" rx="2" class="bag-shine"/>
+        <!-- Verschluss/Auslass unten -->
+        <rect x="58" y="128" width="14" height="4" class="bag-cap"/>
+        <rect x="61" y="132" width="8" height="8" class="bag-cap"/>
+        <!-- Tropfkammer -->
+        <rect x="50" y="140" width="30" height="52" rx="5" class="chamber"/>
+        <!-- Flüssigkeit am Boden der Kammer -->
+        <rect x="52" y="181" width="26" height="11" rx="3" class="chamber-fluid"/>
+        <!-- Tropfen (animiert, Größe via JS je nach Faktor) -->
+        <circle class="drop" cx="65" cy="151" r="4"/>
+        <!-- Schlauch nach unten -->
+        <path d="M 65 192 L 65 250" class="tube"/>
+      </svg>
+    </div>
+    <div class="infusion-result">
+      <div>
+        <span class="infusion-rate" id="result-val">42</span><span class="infusion-rate-unit" id="result-unit">Tropfen/min</span>
+      </div>
+      <div class="infusion-cadence" id="cadence">ca. alle <strong>1,4 Sekunden</strong> ein Tropfen</div>
+      <div id="result-context" style="font-size:11px; color:var(--muted); margin-top:6px; letter-spacing:.02em;">Makrotropf · 20 Tropfen pro ml</div>
+      <div id="warn-slot"></div>
+    </div>
+  </div>
+
+  <!-- Praxis-Hinweis -->
+  <div class="note-card">
+    <div class="note-icon">i</div>
+    <div class="note-body">
+      <strong>Lehr-Tool, kein klinischer Ersatz.</strong> Im Klinikalltag gilt immer die ärztliche Anordnung und der Hausstandard der Station.
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="https://florianloyns.github.io/Impressum/">Impressum</a>
+  </div>
+
+</div>
+
+<script>
+// PWA: Service Worker registrieren für Offline-Fähigkeit
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+(function() {
+  const $ = id => document.getElementById(id);
+
+  let factor = 20;
+  let mode = 'rate'; // 'rate' | 'time' | 'vol'
+
+  // Volumen-Slider rastet auf reale Beutelgrößen (50/100/250/500/1000/2000 ml)
+  const volSteps = [50, 100, 250, 500, 1000, 2000];
+  const getVol = () => volSteps[+$('vol').value] ?? 500;
+  const findVolIndex = (ml) => {
+    let best = 0, bestDiff = Infinity;
+    for (let i = 0; i < volSteps.length; i++) {
+      const d = Math.abs(volSteps[i] - ml);
+      if (d < bestDiff) { bestDiff = d; best = i; }
+    }
+    return best;
+  };
+
+  // Theme
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved) document.documentElement.classList.add(saved);
+  } catch(e){}
+  $('theme-btn').addEventListener('click', () => {
+    const html = document.documentElement;
+    const isDark = html.classList.contains('dark') ||
+                   (!html.classList.contains('light') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    html.classList.remove('dark', 'light');
+    html.classList.add(isDark ? 'light' : 'dark');
+    try { localStorage.setItem('theme', isDark ? 'light' : 'dark'); } catch(e){}
+  });
+
+  // Info-Popover Toggle
+  const infoTrigger = $('info-trigger');
+  const infoPop = $('info-pop');
+  infoTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = infoPop.hidden;
+    infoPop.hidden = !open;
+    infoTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#info-pop, #info-trigger')) {
+      infoPop.hidden = true;
+      infoTrigger.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // Faktor-Auswahl
+  document.querySelectorAll('#factor-row .chip').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#factor-row .chip').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      factor = +b.dataset.f;
+      update();
+    });
+  });
+
+  // Slider — alle drei
+  ['vol', 'time', 'rate'].forEach(id => $(id).addEventListener('input', update));
+
+  // Modus-Tabs
+  document.querySelectorAll('#mode-tabs .mode-tab').forEach(b => {
+    b.addEventListener('click', () => switchMode(b.dataset.m));
+  });
+
+  function switchMode(newMode) {
+    if (newMode === mode) return;
+    // Bevor wir umschalten: rechne aktuelle Werte und übertrage in den jetzt aktiven Slider,
+    // damit das Szenario beim Wechsel stimmig bleibt.
+    const c = compute();
+    if (newMode === 'rate' && mode !== 'rate') {
+      // Volumen + Laufzeit werden Inputs — beide Slider behalten ihre Werte
+    }
+    if (newMode === 'time' && mode !== 'time') {
+      // Tropfenrate wird Input — auf zuletzt errechnete bzw. aktuelle Rate setzen
+      $('rate').value = clamp(Math.round(c.rate), 5, 200);
+    }
+    if (newMode === 'vol' && mode !== 'vol') {
+      // Tropfenrate wird Input — auf zuletzt errechnete bzw. aktuelle Rate setzen
+      $('rate').value = clamp(Math.round(c.rate), 5, 200);
+    }
+    // Beim Verlassen von 'time'-Modus: Laufzeit-Slider auf errechnete Zeit ziehen
+    if (mode === 'time' && newMode !== 'time') {
+      $('time').value = clamp(Math.round(c.minutes / 30), 1, 48);
+    }
+    // Beim Verlassen von 'vol'-Modus: Volumen-Slider auf nächstgelegene Beutelgröße ziehen
+    if (mode === 'vol' && newMode !== 'vol') {
+      $('vol').value = findVolIndex(c.vol);
+    }
+
+    mode = newMode;
+
+    // Tab aktiv markieren
+    document.querySelectorAll('#mode-tabs .mode-tab').forEach(t => {
+      const active = t.dataset.m === mode;
+      t.classList.toggle('active', active);
+      t.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+
+    // Sichtbarkeit der Eingabe-Blöcke
+    // 'rate' Modus: vol + time sichtbar, rate versteckt
+    // 'time' Modus: vol + rate sichtbar, time versteckt
+    // 'vol'  Modus: time + rate sichtbar, vol versteckt
+    $('block-vol').hidden  = (mode === 'vol');
+    $('block-time').hidden = (mode === 'time');
+    $('block-rate').hidden = (mode === 'rate');
+
+    update();
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  // Laufzeit-Slider arbeitet in halben Stunden (Wert × 0.5 = Stunden)
+  function timeLabel(halfHours) {
+    const h = halfHours / 2;
+    if (h < 1) return '30 min';
+    if (h === Math.floor(h)) return h + ' h';
+    return Math.floor(h) + ' h 30 min';
+  }
+
+  // Minuten als „X h Y min" formatieren (für errechnete Laufzeit)
+  function formatMinutes(min) {
+    min = Math.max(0, Math.round(min));
+    if (min < 60) return min + ' min';
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    if (m === 0) return h + ' h';
+    return h + ' h ' + m + ' min';
+  }
+  function formatMinutesHTML(min) {
+    return formatMinutes(min)
+      .replace(' h', ' <small>h</small>')
+      .replace(' min', ' <small>min</small>');
+  }
+
+  function compute() {
+    const vol = getVol();
+    const halfHours = +$('time').value;
+    const minutesIn = (halfHours / 2) * 60;
+    const rate = +$('rate').value;
+
+    let v = vol, t = minutesIn, r = rate;
+    if (mode === 'rate') {
+      r = (v * factor) / t;
+    } else if (mode === 'time') {
+      t = (v * factor) / r;
+    } else { // vol
+      v = (r * t) / factor;
+    }
+    return { vol: v, minutes: t, rate: r };
+  }
+
+  function update() {
+    const c = compute();
+
+    // Eingabe-Labels (zeigen jeweils den Slider-Wert)
+    $('vol-out').innerHTML = getVol() + ' <small>ml</small>';
+    $('time-out').innerHTML = timeLabel(+$('time').value)
+      .replace(' h', ' <small>h</small>')
+      .replace(' min', ' <small>min</small>');
+    $('rate-out').innerHTML = (+$('rate').value) + ' <small>Tropfen/min</small>';
+
+    // Großes Ergebnis-Display
+    const resultVal = $('result-val');
+    const resultUnit = $('result-unit');
+    const resultCtx = $('result-context');
+    resultVal.classList.remove('long', 'long-xl');
+
+    const factorLabel = (factor === 60) ? 'Mikrotropf' : 'Makrotropf';
+
+    if (mode === 'rate') {
+      resultVal.textContent = Math.round(c.rate);
+      resultUnit.textContent = 'Tropfen/min';
+      resultCtx.textContent = factorLabel + ' · ' + factor + ' Tropfen pro ml';
+    } else if (mode === 'time') {
+      const txt = formatMinutes(c.minutes);
+      resultVal.textContent = txt;
+      resultUnit.textContent = '';
+      if (txt.length > 9) resultVal.classList.add('long-xl');
+      else if (txt.length > 5) resultVal.classList.add('long');
+      resultCtx.textContent = getVol() + ' ml bei ' + Math.round(c.rate) + ' Tropfen/min · ' + factorLabel;
+    } else { // vol
+      resultVal.textContent = Math.round(c.vol);
+      resultUnit.textContent = 'ml';
+      resultCtx.textContent = 'in ' + timeLabel(+$('time').value) + ' bei ' + Math.round(c.rate) + ' Tropfen/min · ' + factorLabel;
+    }
+
+    // Cadence — nur im Tropfenrate-Modus sinnvoll (übersetzt das Ergebnis in die
+    // Tropffrequenz am Bett). In Laufzeit-/Volumen-Modus ist die Rate Eingabe,
+    // dort wäre die Cadence redundant.
+    const gtt = c.rate;
+    if (mode === 'rate') {
+      const secPerDrop = 60 / Math.max(gtt, 0.0001);
+      let cadenceText;
+      if (gtt > 90) {
+        cadenceText = 'mehr als 1 Tropfen pro Sekunde';
+      } else if (secPerDrop < 1.5) {
+        cadenceText = 'etwa 1 Tropfen pro Sekunde';
+      } else {
+        const secCeil = Math.ceil(secPerDrop);
+        cadenceText = 'ca. alle <strong>' + secCeil + ' Sekunden</strong> ein Tropfen';
+      }
+      $('cadence').innerHTML = cadenceText;
+      $('cadence').style.display = '';
+    } else {
+      $('cadence').style.display = 'none';
+    }
+
+    // Warnung bei sehr hoher Rate
+    const warnSlot = $('warn-slot');
+    warnSlot.innerHTML = (gtt > 100)
+      ? '<span class="warn-pill">⚠ Pumpe empfehlenswert</span>'
+      : '';
+
+    // Tropfen-Animation: Geschwindigkeit = Tropfenrate
+    const animMs = Math.max(333, 60000 / Math.max(gtt, 1));
+    // Tropfengröße: Mikro (60/ml) hat real kleinere, feinere Tropfen — Makro große
+    const dropR = (factor === 60) ? 2.2 : 4;
+    document.querySelectorAll('.drop').forEach(d => {
+      d.style.animationDuration = animMs + 'ms';
+      d.setAttribute('r', dropR);
+    });
+
+    // Beutel-Füllstand spiegelt Volumen (linear: 0 ml → leer, 2000 ml → voll)
+    // Beutelinnenraum reicht von y=8 (oben) bis y=128 (unten am Auslass)
+    const bagTop = 8, bagBottom = 130;
+    const bagHeight = bagBottom - bagTop; // 122
+    const fluidRatio = Math.max(0.02, Math.min(1, c.vol / 2000));
+    const fluidY = bagBottom - bagHeight * fluidRatio;
+    const fluidEl = $('bag-fluid');
+    fluidEl.setAttribute('y', fluidY);
+    fluidEl.setAttribute('height', bagBottom - fluidY);
+
+    // Etikett zeigt aktuelles Volumen
+    $('bag-label-text').textContent = Math.round(c.vol) + ' ml';
+
+    // Formel-Anzeige (passend zum Modus)
+    const V = Math.round(c.vol);
+    const T = Math.round(c.minutes);
+    const R = Math.round(c.rate);
+    let f;
+    let fName, fIntro;
+    if (mode === 'rate') {
+      f = '(' + V + ' ml × ' + factor + ' Tropfen/ml) ÷ ' + T + ' min = ' + R + ' Tropfen/min';
+      fName = '<strong>Tropfenrate</strong> = (Volumen × Tropfenfaktor) ÷ Laufzeit in Minuten';
+      fIntro = 'Die Tropfenrate sagt, wie viele Tropfen pro Minute aus dem Beutel fallen müssen, damit das Volumen in der vorgegebenen Zeit komplett durchläuft. Sind Volumen und Laufzeit gegeben, lässt sich die Tropfenrate so berechnen:';
+    } else if (mode === 'time') {
+      f = '(' + V + ' ml × ' + factor + ' Tropfen/ml) ÷ ' + R + ' Tropfen/min = ' + T + ' min';
+      fName = '<strong>Laufzeit</strong> = (Volumen × Tropfenfaktor) ÷ Tropfenrate';
+      fIntro = 'Die Laufzeit sagt, wie lange das Volumen bei der eingestellten Tropfenrate zum Durchlaufen braucht — vom Anhängen des Beutels bis zum letzten Tropfen. Sind Volumen und Tropfenrate gegeben, lässt sich die Laufzeit so berechnen:';
+    } else {
+      f = '(' + R + ' Tropfen/min × ' + T + ' min) ÷ ' + factor + ' Tropfen/ml = ' + V + ' ml';
+      fName = '<strong>Volumen</strong> = (Tropfenrate × Laufzeit in Minuten) ÷ Tropfenfaktor';
+      fIntro = 'Das Volumen sagt, wie viel Flüssigkeit bei der eingestellten Tropfenrate in der vorgegebenen Zeit insgesamt durchläuft — die Gesamtmenge, die bei den Patient*innen ankommt. Sind Tropfenrate und Laufzeit gegeben, lässt sich das Volumen so berechnen:';
+    }
+    $('formula').textContent = f;
+    $('formula-name').innerHTML = fName;
+    $('formula-intro').textContent = fIntro;
+  }
+
+  update();
+})();
+</script>
+</body>
+</html>
