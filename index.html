@@ -540,7 +540,8 @@ details.explainer .explainer-body code {
     <h1 style="margin:0; padding-right: 50px; font-size:22px; color:var(--ink); letter-spacing:-.015em; line-height:1.1;">Infusionsrechner</h1>
     <p style="margin:5px 0 0; font-size:13px; color:var(--muted); line-height:1.3;">Werte einstellen, Ergebnis live mitsehen.</p>
     <button class="icon-btn" id="theme-btn" aria-label="Farbschema umschalten" style="position: absolute; top: 24px; right: 0;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      <svg id="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
   </div>
 
@@ -681,10 +682,17 @@ if ('serviceWorker' in navigator) {
   };
 
   // Theme
+  function syncThemeIcon() {
+    const isDark = document.documentElement.classList.contains('dark') ||
+      (!document.documentElement.classList.contains('light') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    $('theme-icon-sun').style.display  = isDark ? 'block' : 'none';
+    $('theme-icon-moon').style.display = isDark ? 'none'  : 'block';
+  }
   try {
     const saved = localStorage.getItem('theme');
     if (saved) document.documentElement.classList.add(saved);
   } catch(e){}
+  syncThemeIcon();
   $('theme-btn').addEventListener('click', () => {
     const html = document.documentElement;
     const isDark = html.classList.contains('dark') ||
@@ -692,7 +700,9 @@ if ('serviceWorker' in navigator) {
     html.classList.remove('dark', 'light');
     html.classList.add(isDark ? 'light' : 'dark');
     try { localStorage.setItem('theme', isDark ? 'light' : 'dark'); } catch(e){}
+    syncThemeIcon();
   });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemeIcon);
 
   // Info-Popover Toggle
   const infoTrigger = $('info-trigger');
