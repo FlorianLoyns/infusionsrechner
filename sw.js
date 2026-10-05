@@ -1,4 +1,4 @@
-const CACHE_NAME = 'infusionsrechner-v1';
+const CACHE_NAME = 'infusionsrechner-v2';
 const ASSETS = [
   './',
   './index.html',
